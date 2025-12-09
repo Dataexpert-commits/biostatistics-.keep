@@ -1,1 +1,105 @@
+---
+title: "Lung Cancer Survival Analysis with Kaplan–Meier and Cox Models"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(survival)
+library(survminer)
+library(broom)
+
+data("lung", package = "survival")
+
+# View structure
+glimpse(lung)
+
+# Basic summaries
+summary(lung)
+
+lung_clean <- lung %>%
+mutate(
+status = ifelse(status == 2, 1, 0),        # 1 = event (death), 0 = censored
+sex = factor(sex, levels = c(1, 2),
+labels = c("Male", "Female"))
+) %>%
+drop_na(time, status, sex, age)
+
+summary(lung_clean)
+
+# Create survival object
+surv_obj <- Surv(time = lung_clean$time, event = lung_clean$status)
+
+# Kaplan–Meier by sex
+fit_km_sex <- survfit(surv_obj ~ sex, data = lung_clean)
+fit_km_sex
+
+# Plot KM curves
+ggsurvplot(
+fit_km_sex,
+data = lung_clean,
+pval = TRUE,
+conf.int = TRUE,
+risk.table = TRUE,
+legend.title = "Sex",
+legend.labs = c("Male", "Female"),
+xlab = "Time (days)",
+ylab = "Survival probability",
+title = "Kaplan–Meier Survival Curves by Sex"
+)
+
+lung_clean <- lung_clean %>%
+mutate(
+age_group = case_when(
+age < 60 ~ "< 60",
+age >= 60 & age < 70 ~ "60–69",
+TRUE ~ "70+"
+)
+)
+
+fit_km_age <- survfit(Surv(time, status) ~ age_group, data = lung_clean)
+
+ggsurvplot(
+fit_km_age,
+data = lung_clean,
+pval = TRUE,
+conf.int = FALSE,
+risk.table = TRUE,
+legend.title = "Age group",
+xlab = "Time (days)",
+ylab = "Survival probability",
+title = "Kaplan–Meier Curves by Age Group"
+)
+
+
+cox_model <- coxph(Surv(time, status) ~ sex + age, data = lung_clean)
+summary(cox_model)
+
+tidy_cox <- tidy(cox_model, exponentiate = TRUE, conf.int = TRUE)
+tidy_cox
+
+cox_zph <- cox.zph(cox_model)
+cox_zph
+ggcoxzph(cox_zph)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
