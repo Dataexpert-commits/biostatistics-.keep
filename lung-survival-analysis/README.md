@@ -33,7 +33,7 @@ This project performs a biostatistical survival analysis using the `lung` datase
 
 ---
 
-## 📈 Key Findings (Example Interpretation)
+## 📈 Key Findings 
 
 - **Sex differences:**  
   Kaplan–Meier curves typically show survival differences between males and females, supported by log-rank test p-values.
